@@ -16,4 +16,9 @@ public class TemperatureConverter {
         // Returns true if below -40°C or above 50°C
         return celsius < -40.0 || celsius > 50.0;
     }
+
+    public double kelvinToCelsius(double kelvin) {
+        // Returns Kelvin - 273.15
+        return kelvin - 273.15;
+    }
 }
