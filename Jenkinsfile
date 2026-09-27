@@ -4,7 +4,6 @@ pipeline {
         maven 'DefaultMaven'
     }
     environment {
-        // TÄSSÄ ON KORJATTU POLKU, JONKA LÖYSIT!
         PATH = "C:\\Users\\merli\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
         DOCKER_HUB_USER = 'jerevla'
         IMAGE_NAME = 'temperature-converter'
@@ -50,10 +49,9 @@ pipeline {
         }
         stage('Push to Docker Hub') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKERHUB_CREDENTIALS_ID}") {
-                        docker.image("${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest").push()
-                    }
+                withCredentials([usernamePassword(credentialsId: "${env.DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    bat 'docker login -u %DOCKER_USER% -p %DOCKER_PASS%'
+                    bat "docker push ${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest"
                 }
             }
         }
