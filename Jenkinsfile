@@ -2,7 +2,6 @@ pipeline {
     agent any
     tools {
         maven 'DefaultMaven'
-        dockerTool 'DefaultDocker'
     }
     environment {
         DOCKER_HUB_USER = 'jerevla'
@@ -41,22 +40,14 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t jerevla/temperature-converter:latest .'
+                bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest .'
             }
         }
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASS')]) {
-                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" login -u jerevla -p %DOCKER_PASS%'
-                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" push jerevla/temperature-converter:latest'
-                }
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASS')]) {
-                    bat "docker login -u ${DOCKER_HUB_USER} -p %DOCKER_PASS%"
-                    bat "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" login -u ${DOCKER_HUB_USER} -p %DOCKER_PASS%'
+                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest'
                 }
             }
         }
