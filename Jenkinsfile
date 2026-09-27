@@ -4,6 +4,7 @@ pipeline {
         maven 'DefaultMaven'
     }
     environment {
+        PATH = "C:\\Program Files\\Docker\\Docker\\resources\\bin;${env.PATH}"
         DOCKER_HUB_USER = 'jerevla'
         IMAGE_NAME = 'temperature-converter'
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-password'
