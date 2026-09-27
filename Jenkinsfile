@@ -38,18 +38,5 @@ pipeline {
                 jacoco()
             }
         }
-        stage('Build Docker Image') {
-            steps {
-                bat 'docker build -t jerevla/temperature-converter:latest .'
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASS')]) {
-                    bat 'echo %DOCKER_PASS% | docker login -u jerevla --password-stdin'
-                    bat 'docker push jerevla/temperature-converter:latest'
-                }
-            }
-        }
     }
 }
