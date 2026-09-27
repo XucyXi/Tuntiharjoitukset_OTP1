@@ -40,14 +40,14 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest .'
+                bat 'C:\\ProgramData\\DockerDesktop\\version-bin\\docker.exe build -t jerevla/temperature-converter:latest .'
             }
         }
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([string(credentialsId: 'docker-hub-password', variable: 'DOCKER_PASS')]) {
-                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" login -u ${DOCKER_HUB_USER} -p %DOCKER_PASS%'
-                    bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest'
+                    bat 'C:\\ProgramData\\DockerDesktop\\version-bin\\docker.exe login -u jerevla -p %DOCKER_PASS%'
+                    bat 'C:\\ProgramData\\DockerDesktop\\version-bin\\docker.exe push jerevla/temperature-converter:latest'
                 }
             }
         }
