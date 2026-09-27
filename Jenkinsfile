@@ -6,6 +6,7 @@ pipeline {
     environment {
         DOCKER_HUB_USER = 'jerevla'
         IMAGE_NAME = 'temperature-converter'
+        DOCKERHUB_CREDENTIALS_ID = 'docker-hub-password'
     }
     stages {
         stage('Checkout') {
@@ -36,6 +37,22 @@ pipeline {
         stage('Publish Coverage Report') {
             steps {
                 jacoco()
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build("${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest")
+                }
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKERHUB_CREDENTIALS_ID}") {
+                        docker.image("${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest").push()
+                    }
+                }
             }
         }
     }
