@@ -41,6 +41,14 @@ pipeline {
                 jacoco()
             }
         }
+
+        stage('Debug Docker') {
+            steps {
+                bat 'where docker'
+                bat 'echo %PATH%'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
