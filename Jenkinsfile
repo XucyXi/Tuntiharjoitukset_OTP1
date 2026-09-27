@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    tools {
+        maven 'DefaultMaven'
+    }
     environment {
         DOCKER_HUB_USER = 'oma_dockerhub_tunnuksesi'
         IMAGE_NAME = 'temperature-converter'
