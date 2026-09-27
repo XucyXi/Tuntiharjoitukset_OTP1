@@ -4,7 +4,7 @@ pipeline {
         maven 'DefaultMaven'
     }
     environment {
-        DOCKER_HUB_USER = 'oma_dockerhub_tunnuksesi'
+        DOCKER_HUB_USER = 'jerevla'
         IMAGE_NAME = 'temperature-converter'
     }
     stages {
