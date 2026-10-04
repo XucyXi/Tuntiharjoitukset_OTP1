@@ -42,7 +42,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-password',
                                                   usernameVariable: 'DH_USER',
                                                   passwordVariable: 'DH_PASS')]) {
-                    bat 'echo %DH_PASS%|docker login -u %DH_USER% --password-stdin'
+                    bat 'docker login -u %DH_USER% -p "%DH_PASS%"'
                     bat "docker push %IMAGE%:latest"
                 }
             }
