@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'DefaultMaven'
+    }
+
     environment {
         // Korjaa "'docker' is not recognized" -virheen Windows-Jenkinsissä
         PATH = "C:\\Program Files\\Docker\\Docker\\resources\\bin;${env.PATH}"
