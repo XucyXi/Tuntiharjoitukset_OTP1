@@ -3,22 +3,38 @@ package assignments.inclass1;
 public class TemperatureConverter {
 
     public double fahrenheitToCelsius(double fahrenheit) {
-        // Returns (fahrenheit - 32) * 5/9
         return (fahrenheit - 32.0) * 5.0 / 9.0;
     }
 
     public double celsiusToFahrenheit(double celsius) {
-        // Returns (celsius * 9/5) + 32
         return (celsius * 9.0 / 5.0) + 32.0;
     }
 
     public boolean isExtremeTemperature(double celsius) {
-        // Returns true if below -40°C or above 50°C
         return celsius < -40.0 || celsius > 50.0;
     }
 
     public double kelvinToCelsius(double kelvin) {
-        // Returns Kelvin - 273.15
         return kelvin - 273.15;
+    }
+
+    public double celsiusToKelvin(double celsius) {
+        return celsius + 273.15;
+    }
+
+    /** Muuntaa yksiköstä toiseen (Celsius, Fahrenheit, Kelvin) Celsiuksen kautta. */
+    public double convert(String from, String to, double value) {
+        double celsius = switch (from) {
+            case "Celsius" -> value;
+            case "Fahrenheit" -> fahrenheitToCelsius(value);
+            case "Kelvin" -> kelvinToCelsius(value);
+            default -> throw new IllegalArgumentException("Unknown unit: " + from);
+        };
+        return switch (to) {
+            case "Celsius" -> celsius;
+            case "Fahrenheit" -> celsiusToFahrenheit(celsius);
+            case "Kelvin" -> celsiusToKelvin(celsius);
+            default -> throw new IllegalArgumentException("Unknown unit: " + to);
+        };
     }
 }

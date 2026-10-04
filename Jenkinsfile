@@ -1,59 +1,54 @@
 pipeline {
     agent any
-    tools {
-        maven 'DefaultMaven'
-    }
+
     environment {
-        PATH = "C:\\Users\\merli\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
-        DOCKER_HUB_USER = 'jerevla'
-        IMAGE_NAME = 'temperature-converter'
-        DOCKERHUB_CREDENTIALS_ID = 'docker-hub-password'
+        // Korjaa "'docker' is not recognized" -virheen Windows-Jenkinsissä
+        PATH = "C:\\Program Files\\Docker\\Docker\\resources\\bin;${env.PATH}"
+        IMAGE = 'jerevla/temperature-converter'
     }
+
     stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/XucyXi/Tuntiharjoitukset_OTP1.git'
             }
         }
-        stage('Build') {
+
+        stage('Build & Test') {
             steps {
-                bat 'mvn clean install'
+                bat 'mvn -B clean test'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                    jacoco execPattern: 'target/jacoco.exec',
+                           classPattern: 'target/classes',
+                           sourcePattern: 'src/main/java'
+                }
             }
         }
-        stage('Test') {
-            steps {
-                bat 'mvn test'
-            }
-        }
-        stage('Code Coverage') {
-            steps {
-                bat 'mvn jacoco:report'
-            }
-        }
-        stage('Publish Test Results') {
-            steps {
-                junit '**/target/surefire-reports/*.xml'
-            }
-        }
-        stage('Publish Coverage Report') {
-            steps {
-                jacoco()
-            }
-        }
+
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest")
+                bat "docker build -t %IMAGE%:latest ."
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                                                  usernameVariable: 'DH_USER',
+                                                  passwordVariable: 'DH_PASS')]) {
+                    bat 'echo %DH_PASS%|docker login -u %DH_USER% --password-stdin'
+                    bat "docker push %IMAGE%:latest"
                 }
             }
         }
-        stage('Push to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: "${env.DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat 'docker login -u "%DOCKER_USER%" -p "%DOCKER_PASS%"'
-                    bat "docker push ${env.DOCKER_HUB_USER}/${env.IMAGE_NAME}:latest"
-                }
-            }
+    }
+
+    post {
+        always {
+            bat 'docker logout'
         }
     }
 }
