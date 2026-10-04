@@ -6,8 +6,7 @@ pipeline {
     }
 
     environment {
-        // Korjaa "'docker' is not recognized" -virheen Windows-Jenkinsissä
-        PATH = "C:\\Program Files\\Docker\\Docker\\resources\\bin;${env.PATH}"
+        PATH = "C:\\Users\\merli\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin;${env.PATH}"
         IMAGE = 'jerevla/temperature-converter'
     }
 
