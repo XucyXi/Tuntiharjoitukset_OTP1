@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -39,9 +40,9 @@ public class Main extends Application {
 
         ObservableList<TemperatureUnit> units = FXCollections.observableArrayList(unitDAO.findAll());
 
-        // Kielivalinta käyttöliittymässä
+        // Kielivalinta käyttöliittymässä (sisältää arabian)
         ComboBox<String> langBox = new ComboBox<>(FXCollections.observableArrayList(
-                "English (en_US)", "Finnish (fi_FI)", "Swedish (sv_SE)", "Japanese (ja_JP)"
+                "English (en_US)", "Finnish (fi_FI)", "Swedish (sv_SE)", "Japanese (ja_JP)", "Arabic (ar_SA)"
         ));
         langBox.getSelectionModel().select(0);
 
@@ -56,12 +57,28 @@ public class Main extends Application {
         Label historyLabel = new Label();
 
         TableView<TempRecord> table = new TableView<>(history);
-        TableColumn<TempRecord, String> colFrom = column("", r -> r.fromUnit().symbol());
-        TableColumn<TempRecord, String> colTo = column("", r -> r.toUnit().symbol());
-        TableColumn<TempRecord, String> colInput = column("", r -> String.format("%.2f", r.inputValue()));
-        TableColumn<TempRecord, String> colResult = column("", r -> String.format("%.2f", r.resultValue()));
-        TableColumn<TempRecord, String> colTime = column("", r -> r.createdAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")));
-        table.getColumns().addAll(colFrom, colTo, colInput, colResult, colTime);
+        TableColumn<TempRecord, String> colFrom = column(bundle.getString("col.from"), r -> r.fromUnit().symbol());
+        TableColumn<TempRecord, String> colTo = column(bundle.getString("col.to"), r -> r.toUnit().symbol());
+        TableColumn<TempRecord, String> colInput = column(bundle.getString("col.input"), r -> String.format("%.2f", r.inputValue()));
+        TableColumn<TempRecord, String> colResult = column(bundle.getString("col.result"), r -> String.format("%.2f", r.resultValue()));
+        TableColumn<TempRecord, String> colTime = column(bundle.getString("col.time"), r -> r.createdAt().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")));
+
+        table.getColumns().add(colFrom);
+        table.getColumns().add(colTo);
+        table.getColumns().add(colInput);
+        table.getColumns().add(colResult);
+        table.getColumns().add(colTime);
+
+        VBox root = new VBox(10,
+                new HBox(10, new Label("Language:"), langBox),
+                new HBox(10, input, from, to, convert),
+                result,
+                extremeLabel,
+                historyLabel,
+                table
+        );
+        root.setPadding(new Insets(15));
+        root.setStyle("-fx-font-family: 'Meiryo UI', 'Yu Gothic UI', 'Segoe UI', sans-serif;");
 
         Runnable updateTexts = () -> {
             stage.setTitle(bundle.getString("app.title"));
@@ -80,10 +97,20 @@ public class Main extends Application {
                 case 1 -> Locale.of("fi", "FI");
                 case 2 -> Locale.of("sv", "SE");
                 case 3 -> Locale.of("ja", "JP");
+                case 4 -> Locale.of("ar", "SA"); // Lisätty puuttunut arabian tapaus
                 default -> Locale.of("en", "US");
             };
+
             bundle = ResourceBundle.getBundle("MessagesBundle", loc);
             updateTexts.run();
+
+            // Vaihdetaan käyttöliittymän suunta oikealta vasemmalle (RTL) arabiaa varten
+            if (loc.getLanguage().equals("ar")) {
+                root.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+            } else {
+                root.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
+            }
+
             System.out.println("Selected language: " + langBox.getValue());
         });
 
@@ -104,7 +131,6 @@ public class Main extends Application {
                         : MessageFormat.format(bundle.getString("result.extreme.no"), String.format("%.2f", celsiusVal));
                 extremeLabel.setText(extremeText);
 
-                // Tulostetaan myös konsoliin tän kerran tehtävänannon kuvakaappausta varten
                 System.out.println(bundle.getString("prompt.temp") + ": " + value);
                 System.out.println(resText);
                 System.out.println(extremeText);
@@ -119,17 +145,6 @@ public class Main extends Application {
 
         updateTexts.run();
         history.setAll(recordDAO.findAll());
-
-        VBox root = new VBox(10,
-                new HBox(10, new Label("Language:"), langBox),
-                new HBox(10, input, from, to, convert),
-                result,
-                extremeLabel,
-                historyLabel,
-                table
-        );
-        root.setPadding(new Insets(15));
-        root.setStyle("-fx-font-family: 'Meiryo UI', 'Yu Gothic UI', 'Segoe UI', sans-serif;");
 
         stage.setScene(new Scene(root, 650, 500));
         stage.show();
