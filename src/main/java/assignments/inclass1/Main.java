@@ -97,7 +97,7 @@ public class Main extends Application {
                 case 1 -> Locale.of("fi", "FI");
                 case 2 -> Locale.of("sv", "SE");
                 case 3 -> Locale.of("ja", "JP");
-                case 4 -> Locale.of("ar", "SA"); // Lisätty puuttunut arabian tapaus
+                case 4 -> Locale.of("ar", "SA");
                 default -> Locale.of("en", "US");
             };
 
