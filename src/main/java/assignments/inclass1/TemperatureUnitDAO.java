@@ -4,35 +4,37 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class TemperatureUnitDAO {
 
-    public List<TemperatureUnit> findAll() throws SQLException {
+    public List<TemperatureUnit> findAllLocalized(String languageCode) throws SQLException {
         List<TemperatureUnit> units = new ArrayList<>();
-        try (Connection c = DBConnection.getConnection();
-             Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery("SELECT id, name, symbol FROM temperature_unit ORDER BY id")) {
-            while (rs.next()) {
-                units.add(new TemperatureUnit(rs.getInt("id"), rs.getString("name"), rs.getString("symbol")));
-            }
-        }
-        return units;
-    }
 
-    public Optional<TemperatureUnit> findByName(String name) throws SQLException {
-        try (Connection c = DBConnection.getConnection();
-             PreparedStatement ps = c.prepareStatement("SELECT id, name, symbol FROM temperature_unit WHERE name = ?")) {
-            ps.setString(1, name);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return Optional.of(new TemperatureUnit(rs.getInt("id"), rs.getString("name"), rs.getString("symbol")));
+        // Haetaan käännös valitulla kielellä, jos ei löydy, haetaan enkuksi
+        String sql = """
+            SELECT u.id, u.symbol, 
+                   COALESCE(t1.name, t2.name) as localized_name
+            FROM temperature_unit u
+            LEFT JOIN unit_translation t1 ON u.id = t1.unit_id AND t1.lang = ?
+            LEFT JOIN unit_translation t2 ON u.id = t2.unit_id AND t2.lang = 'en'
+            ORDER BY u.id
+        """;
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, languageCode);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    units.add(new TemperatureUnit(
+                            rs.getInt("id"),
+                            rs.getString("symbol"),
+                            rs.getString("localized_name")
+                    ));
                 }
             }
         }
-        return Optional.empty();
+        return units;
     }
 }

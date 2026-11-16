@@ -1,11 +1,13 @@
 package assignments.inclass1;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-/** Luo yhteyden H2-tietokantaan ja alustaa taulut (temperature_unit, temp_record). */
+/** Luo yhteyden H2-tietokantaan ja alustaa taulut lukemalla init.sql -tiedoston. */
 public class DBConnection {
 
     private static String url = System.getProperty("db.url", "jdbc:h2:./data/tempdb");
@@ -30,23 +32,25 @@ public class DBConnection {
     }
 
     private static void initSchema(Connection connection) throws SQLException {
-        try (Statement st = connection.createStatement()) {
-            st.execute("CREATE TABLE IF NOT EXISTS temperature_unit ("
-                    + "id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "name VARCHAR(30) NOT NULL UNIQUE, "
-                    + "symbol VARCHAR(5) NOT NULL)");
-            st.execute("CREATE TABLE IF NOT EXISTS temp_record ("
-                    + "id INT AUTO_INCREMENT PRIMARY KEY, "
-                    + "from_unit_id INT NOT NULL, "
-                    + "to_unit_id INT NOT NULL, "
-                    + "input_value DOUBLE NOT NULL, "
-                    + "result_value DOUBLE NOT NULL, "
-                    + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
-                    + "FOREIGN KEY (from_unit_id) REFERENCES temperature_unit(id), "
-                    + "FOREIGN KEY (to_unit_id) REFERENCES temperature_unit(id))");
-            st.execute("MERGE INTO temperature_unit (name, symbol) KEY(name) VALUES ('Celsius', '°C')");
-            st.execute("MERGE INTO temperature_unit (name, symbol) KEY(name) VALUES ('Fahrenheit', '°F')");
-            st.execute("MERGE INTO temperature_unit (name, symbol) KEY(name) VALUES ('Kelvin', 'K')");
+        // Haetaan init.sql resources-kansiosta
+        try (InputStream is = DBConnection.class.getClassLoader().getResourceAsStream("init.sql");
+             Statement st = connection.createStatement()) {
+
+            if (is == null) {
+                System.err.println("Tietokantaa ei voitu alustaa: init.sql -tiedostoa ei löytynyt!");
+                return;
+            }
+
+            // Luetaan tiedoston sisältö merkkijonoksi UTF-8 muodossa (tärkeää japanin ja arabian kannalta)
+            String sql = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+            // Ajetaan koko SQL-skripti kerralla
+            st.execute(sql);
+            System.out.println("Tietokanta alustettu onnistuneesti init.sql -tiedostosta.");
+
+        } catch (Exception e) {
+            System.err.println("Virhe tietokannan alustuksessa: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
